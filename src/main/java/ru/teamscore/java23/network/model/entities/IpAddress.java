@@ -4,6 +4,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import ru.teamscore.java23.network.model.exceptions.WrongIntIpAddressException;
+import ru.teamscore.java23.network.model.exceptions.WrongStringToIpAddressException;
 
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -39,10 +41,8 @@ public class IpAddress {
         intIpAddress[i] = Integer.parseInt(ipAddressInArray[i]);
       }
       catch (NumberFormatException e){
-        System.err.println(e.getMessage());
-        throw e;
+        throw new WrongStringToIpAddressException("Невозможно преобразовать строку в ip Address", ipAddress);
       }
-
     }
     return intIpAddress;
   }
@@ -50,14 +50,12 @@ public class IpAddress {
   public static boolean isValid(@NonNull int[] intIpAddress){
 
     if (intIpAddress.length != 4){
-      System.err.println("Неверный размер ip адреса: " + intIpAddress.length);
-      return false;
+      throw new WrongIntIpAddressException("Неверный размер ip адреса: ", intIpAddress);
     }
 
     for (int i : intIpAddress) {
       if (i < 0 || i > 255){
-        System.err.println("Не ip адрес: " + i);
-        return false;
+        throw new WrongIntIpAddressException("Не ip адрес: ", intIpAddress);
       }
     }
     return true;

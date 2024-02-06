@@ -4,6 +4,9 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import ru.teamscore.java23.network.model.enums.LineType;
+import ru.teamscore.java23.network.model.exceptions.ExistCommunicationLineException;
+import ru.teamscore.java23.network.model.exceptions.ExistHostException;
+import ru.teamscore.java23.network.model.exceptions.IpAddressNotMatchNetwork;
 
 import java.util.*;
 
@@ -39,27 +42,27 @@ public class Network {
 
   public void addHost(IpAddress ipAddress, String macAddress){
     if(isValidIpAddress(ipAddress)){
-      Host existingHost = getHost(getIpAddress());
+      Host existingHost = getHost(ipAddress);
 
       if (existingHost == null) {
         hosts.add(new Host(ipAddress, macAddress));
       } else {
-        System.err.println("Такой хост уже существует");
+        throw new ExistHostException("Такой хост уже существует", existingHost);
       }
     } else {
-      System.err.println("Ip адрес не подходит данной сети");
+      throw new IpAddressNotMatchNetwork("Ip адрес не подходит данной сети", ipAddress);
     }
   }
 
   public void removeHost(@NonNull Host host){
-    removeHost(host.getIpAddress());
+    hosts.remove(host);
   }
 
   public void removeHost(@NonNull IpAddress ipAddress){
     Host existingHost = getHost(ipAddress);
 
     if (existingHost != null) {
-      hosts.remove(existingHost);
+      removeHost(existingHost);
     }
   }
 
@@ -72,9 +75,17 @@ public class Network {
     int endIntAddress = startIntAddress | ~maskIntAddress; // получаем широковещательный (последний) адрес сети
 
     while (true){
-      IpAddress unusedIp = new IpAddress(integerToIp(startIntAddress + (int) (Math.random() * (endIntAddress-startIntAddress))));
+      int randomIpAddress = startIntAddress + (int) (Math.random() * (endIntAddress-startIntAddress));
+      IpAddress unusedIp = new IpAddress(integerToIp(randomIpAddress));
       if (isValidIpAddress(unusedIp)){
         return unusedIp;
+      } else {
+        while (++randomIpAddress <= endIntAddress){
+          unusedIp = new IpAddress(integerToIp(randomIpAddress));
+          if(isValidIpAddress(unusedIp)){
+            return unusedIp;
+          }
+        }
       }
     }
   }
@@ -113,7 +124,7 @@ public class Network {
     if (existingCommunicationLine == null) {
       communicationLines.add(new CommunicationLine(lineName, type));
     } else {
-      System.err.println("Такая линия связи уже существует");
+      throw new ExistCommunicationLineException("Такая линия связи уже существует", existingCommunicationLine);
     }
   }
 
@@ -135,7 +146,7 @@ public class Network {
   }
 
   // количество связей,
-  public int getCountCommunicationLine(){
+  public int getCountCommunicationLines(){
     return communicationLines.size();
   }
 

@@ -45,12 +45,13 @@ public class CommunicationLine {
     }
   }
 
-  public void removeHost(IpAddress ipAddress){
+  public Host removeHost(IpAddress ipAddress){
     Host existingHost = getHost(ipAddress);
 
     if (existingHost != null) {
       hosts.remove(existingHost);
     }
+    return existingHost;
   }
 
   public Host getHost(IpAddress ipAddress){

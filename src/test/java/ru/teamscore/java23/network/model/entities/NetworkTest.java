@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import ru.teamscore.java23.network.model.enums.LineType;
+import ru.teamscore.java23.network.model.exceptions.ExistCommunicationLineException;
+import ru.teamscore.java23.network.model.exceptions.ExistHostException;
+import ru.teamscore.java23.network.model.exceptions.IpAddressNotMatchNetwork;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,6 +45,11 @@ class NetworkTest {
     assertEquals(11, networkTest.getAllHosts().size());
     networkTest.addHost(new IpAddress("192.168.0.100"), "habwjd");
     assertEquals(12, networkTest.getAllHosts().size());
+    assertThrows(ExistHostException.class, () -> networkTest.addHost(new IpAddress("192.168.0.100"), "habwjd"));
+    assertEquals(12, networkTest.getAllHosts().size());
+
+    assertThrows(IpAddressNotMatchNetwork.class, () -> networkTest.addHost(new IpAddress("192.168.1.100"), "habwjd"));
+    assertEquals(12, networkTest.getAllHosts().size());
   }
 
   @Test
@@ -59,7 +69,9 @@ class NetworkTest {
   void getUnusedIpAddress() {
     Network network = new Network(new IpAddress("192.168.0.0"), new IpAddress("255.255.255.0"), new IpAddress("10.15.0.0"));
     for (int i = 0; i < 1000; i++) {
-      assertTrue(network.isValidIpAddress(network.getUnusedIpAddress()));
+      IpAddress unusedIpAddress = network.getUnusedIpAddress();
+      System.out.println(Arrays.toString(unusedIpAddress.getIntIpAddress()));
+      assertTrue(network.isValidIpAddress(unusedIpAddress));
     }
   }
 
@@ -87,6 +99,8 @@ class NetworkTest {
   void addCommunicationLine() {
     assertEquals(4, networkTest.getAllCommunicationLines().size());
     networkTest.addCommunicationLine("5", LineType.WIRED);
+    assertEquals(5, networkTest.getAllCommunicationLines().size());
+    assertThrows(ExistCommunicationLineException.class, () -> networkTest.addCommunicationLine("5", LineType.WIRED));
     assertEquals(5, networkTest.getAllCommunicationLines().size());
   }
 
