@@ -1,0 +1,1 @@
+truncate table "communication_lines"."communication_line" restart identity cascade;
