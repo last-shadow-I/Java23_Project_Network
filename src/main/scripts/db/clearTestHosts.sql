@@ -1,0 +1,1 @@
+truncate table "hosts"."host" restart identity cascade;
