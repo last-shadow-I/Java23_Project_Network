@@ -8,14 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class CommunicationLineTest {
 
-  Host host1 = new Host(new IpAddress("127.0.0.0"), "aiudhiuhhuahw123");
-  Host host2 = new Host(new IpAddress("127.0.0.1"), "isbildf/787676");
-  Host host3 = new Host(new IpAddress("127.0.0.2"), "1k2h34khgop89");
-  Host host4 = new Host(new IpAddress("127.0.0.3"), "ajksdkhk");
-  Host host5 = new Host(new IpAddress("127.0.0.4"), "1k2h3ghawdc;a;w4khgop89");
+  Network testNetwork = new Network(1, new IpAddress("192.168.0.0"), new IpAddress("255.255.255.0"), new IpAddress("10.15.0.0"));
+  Host host1 = new Host(1, new IpAddress("127.0.0.0"), "aiudhiuhhuahw123", testNetwork);
+  Host host2 = new Host(2, new IpAddress("127.0.0.1"), "isbildf/787676", testNetwork);
+  Host host3 = new Host(3, new IpAddress("127.0.0.2"), "1k2h34khgop89", testNetwork);
+  Host host4 = new Host(4, new IpAddress("127.0.0.3"), "ajksdkhk", testNetwork);
+  Host host5 = new Host(5, new IpAddress("127.0.0.4"), "1k2h3ghawdc;a;w4khgop89", testNetwork);
 
-  CommunicationLine communicationLine1 = new CommunicationLine("Test1", LineType.WIRED);
-  CommunicationLine communicationLine2 = new CommunicationLine("Test2", LineType.WIRELESS);
+  CommunicationLine communicationLine1 = new CommunicationLine(1, "Test1", LineType.WIRED, testNetwork);
+  CommunicationLine communicationLine2 = new CommunicationLine(2, "Test2", LineType.WIRELESS, testNetwork);
 
   {
     communicationLine1.addHost(host5);
@@ -61,7 +62,7 @@ class CommunicationLineTest {
 
   @Test
   void getHost() {
-    assertNull(communicationLine1.getHost(host1.getIpAddress()));
-    assertEquals(host5, communicationLine1.getHost(host5.getIpAddress()));
+    assertNull(communicationLine1.getHost(host1));
+    assertEquals(host5, communicationLine1.getHost(host5).getHost());
   }
 }

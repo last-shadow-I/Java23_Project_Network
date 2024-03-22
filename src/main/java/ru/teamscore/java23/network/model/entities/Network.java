@@ -1,41 +1,62 @@
 package ru.teamscore.java23.network.model.entities;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import ru.teamscore.java23.network.model.enums.LineType;
-import ru.teamscore.java23.network.model.exceptions.ExistCommunicationLineException;
 import ru.teamscore.java23.network.model.exceptions.ExistHostException;
 import ru.teamscore.java23.network.model.exceptions.IpAddressNotMatchNetwork;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+@AllArgsConstructor
+@EqualsAndHashCode
+@NoArgsConstructor
+@Entity
+@Table(name = "network", schema = "networks")
 public class Network {
 
   @Getter
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "network_id")
+  private long networkId;
+
+  @Getter
+  @Setter
+  @Column(name = "ip_address", nullable = false, unique = true, length = 15)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Convert(converter = IpAddressConverter.class)
   private IpAddress ipAddress;
+
   @Getter
   @Setter
+  @Column(name = "mask", nullable = false, length = 15)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Convert(converter = IpAddressConverter.class)
   private IpAddress networkMask;
+
   @Getter
   @Setter
+  @Column(name = "gateway", nullable = false,  length = 15)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Convert(converter = IpAddressConverter.class)
   private IpAddress gateway;
 
-  private final List<Host> hosts;
+  @OneToMany(mappedBy="network", cascade = CascadeType.ALL)
+  private final List<Host> hosts = new ArrayList<>();
 
-  private final List<CommunicationLine> communicationLines;
-
-  public Network(IpAddress ipAddress, IpAddress networkMask, IpAddress gateway) {
-    this.ipAddress = ipAddress;
-    this.networkMask = networkMask;
-    this.gateway = gateway;
-    this.hosts = new ArrayList<>();
-    this.communicationLines = new ArrayList<>();
-  }
+  @OneToMany(mappedBy="network", cascade = CascadeType.ALL)
+  private final List<CommunicationLine> communicationLines = new ArrayList<>();
 
   // по умолчанию предлагается случайный адрес, соответствующий маске сети
   public Host addHost(String macAddress){
-    Host host = new Host(getUnusedIpAddress(), macAddress);
+    Host host = new Host();
+    host.setIpAddress(getUnusedIpAddress());
+    host.setMacAddress(macAddress);
+    host.setNetwork(this);
     hosts.add(host);
     return host;
   }
@@ -45,7 +66,11 @@ public class Network {
       Host existingHost = getHost(ipAddress);
 
       if (existingHost == null) {
-        hosts.add(new Host(ipAddress, macAddress));
+        Host host = new Host();
+        host.setIpAddress(ipAddress);
+        host.setMacAddress(macAddress);
+        host.setNetwork(this);
+        hosts.add(host);
       } else {
         throw new ExistHostException("Такой хост уже существует", existingHost);
       }
@@ -54,16 +79,48 @@ public class Network {
     }
   }
 
-  public void removeHost(@NonNull Host host){
-    hosts.remove(host);
+  public void addHost(String ipAddress, String macAddress){
+    addHost(new IpAddress(ipAddress), macAddress);
   }
 
-  public void removeHost(@NonNull IpAddress ipAddress){
+  public void addHost(Host host){
+    if(isValidIpAddress(host.getIpAddress())){
+      Host existingHost = getHost(host);
+
+      if (existingHost == null) {
+        hosts.add(host);
+      } else {
+        throw new ExistHostException("Такой хост уже существует", existingHost);
+      }
+    } else {
+      throw new IpAddressNotMatchNetwork("Ip адрес не подходит данной сети", ipAddress);
+    }
+  }
+
+  public Host removeHost(@NonNull Host host){
+    var existingHost = getHost(host.getIpAddress());
+
+    if (existingHost != null) {
+      hosts.remove(existingHost);
+    }
+    return existingHost;
+  }
+
+  public Host removeHost(@NonNull IpAddress ipAddress){
     Host existingHost = getHost(ipAddress);
 
     if (existingHost != null) {
       removeHost(existingHost);
     }
+    return existingHost;
+  }
+
+  public Host removeHost(String ipAddress){
+    return removeHost(new IpAddress(ipAddress));
+  }
+
+  public Host removeHost(long id){
+    return removeHost(getHost(id));
   }
 
   // получить случайный адрес, соответствующий маске сети
@@ -91,7 +148,7 @@ public class Network {
   }
 
   // Переводим ip адрес в битовый вид
-  private static int ipToInteger(@NonNull int[] intIpAddress){
+  private static int ipToInteger(int @NonNull [] intIpAddress){
     return ((intIpAddress[0]*256 + intIpAddress[1])*256 + intIpAddress[2])*256 + intIpAddress[3];
   }
 
@@ -117,27 +174,34 @@ public class Network {
     return true;
   }
 
-  public void addCommunicationLine(String lineName, LineType type){
+  public CommunicationLine addCommunicationLine(String lineName, LineType type){
 
-    CommunicationLine existingCommunicationLine = getCommunicationLine(lineName, type);
+    CommunicationLine communicationLine = new CommunicationLine();
+    communicationLine.setLineName(lineName);
+    communicationLine.setType(type);
+    communicationLine.setNetwork(this);
 
-    if (existingCommunicationLine == null) {
-      communicationLines.add(new CommunicationLine(lineName, type));
-    } else {
-      throw new ExistCommunicationLineException("Такая линия связи уже существует", existingCommunicationLine);
-    }
+    communicationLines.add(communicationLine);
+
+    return communicationLine;
   }
 
-  public void removeCommunicationLine(@NonNull CommunicationLine communicationLine){
-    removeCommunicationLine(communicationLine.getLineName(), communicationLine.getType());
+  public CommunicationLine addCommunicationLine(CommunicationLine communicationLine){
+    communicationLines.add(communicationLine);
+    return communicationLine;
   }
 
-  public void removeCommunicationLine(String lineName, LineType type){
-    CommunicationLine existingCommunicationLine = getCommunicationLine(lineName, type);
+  public CommunicationLine removeCommunicationLine(@NonNull CommunicationLine communicationLine){
+    CommunicationLine existingCommunicationLine = getCommunicationLine(communicationLine);
 
     if (existingCommunicationLine != null) {
       communicationLines.remove(existingCommunicationLine);
     }
+    return  existingCommunicationLine;
+  }
+
+  public CommunicationLine removeCommunicationLine(long id){
+    return removeCommunicationLine(getCommunicationLine(id));
   }
 
   // количество хостов
@@ -151,9 +215,11 @@ public class Network {
   }
 
   // есть ли вообще такой хост в сети
-  public boolean isAddressHost(@NonNull IpAddress ipAddress){
+  public boolean isAddressHost(@NonNull IpAddress findIp){
     var result = hosts.stream()
-            .filter(e -> e.getIpAddress().equals(ipAddress))
+            .filter(e -> {
+              return e.getIpAddress().equals(findIp);
+            })
             .findFirst()
             .orElse(null);
     return result != null;
@@ -163,8 +229,8 @@ public class Network {
   public Collection<Host> getHostsLinkedDirectly(@NonNull Host host){
     Set<Host> hostSet = new HashSet<>();
     for (var l: communicationLines) {
-      if(l.getHost(host.getIpAddress()) != null){
-        hostSet.addAll(l.getAllHosts());
+      if(l.getHost(host) != null){
+        hostSet.addAll(l.getAllHosts().stream().map(LineHost::getHost).collect(Collectors.toSet()));
       }
     }
     hostSet.remove(host);
@@ -200,7 +266,7 @@ public class Network {
   public Collection<Host> getUnreachableHosts(){
     Set<Host> linkedHosts = new HashSet<>();
     for (CommunicationLine communicationLine: getAllCommunicationLines()) {
-      linkedHosts.addAll(communicationLine.getAllHosts());
+      linkedHosts.addAll(communicationLine.getAllHosts().stream().map(LineHost::getHost).collect(Collectors.toSet()));
     }
     Set<Host> allHosts = new HashSet<>(getAllHosts());
     allHosts.removeAll(linkedHosts);
@@ -214,9 +280,34 @@ public class Network {
             .orElse(null);
   }
 
-  public CommunicationLine getCommunicationLine(@NonNull String lineName, @NonNull LineType type) {
+  public Host getHost(@NonNull String ipAddress) {
+    return getHost(new IpAddress(ipAddress));
+  }
+
+  public Host getHost(@NonNull Host host) {
+    return hosts.stream()
+            .filter(e -> e.equals(host))
+            .findFirst()
+            .orElse(null);
+  }
+
+  public Host getHost(long hostId){
+    return hosts.stream()
+            .filter(e -> e.getId() == hostId)
+            .findFirst()
+            .orElse(null);
+  }
+
+  public CommunicationLine getCommunicationLine(long id) {
     return communicationLines.stream()
-            .filter(e -> e.getLineName().equals(lineName) && e.getType().equals(type))
+            .filter(e -> e.getId() == id)
+            .findFirst()
+            .orElse(null);
+  }
+
+  public CommunicationLine getCommunicationLine(@NonNull CommunicationLine communicationLine) {
+    return communicationLines.stream()
+            .filter(e -> e.equals(communicationLine))
             .findFirst()
             .orElse(null);
   }
