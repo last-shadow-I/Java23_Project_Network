@@ -1,15 +1,15 @@
 -- Тестовые данные
 insert into "communication_lines"."communication_line"  ("line_name", "type", "network_id") VALUES
-('1', 'Проводная', 1),
-('2', 'Проводная', 1),
-('3', 'Проводная', 1),
-('4', 'Проводная', 1),
-('5', 'Проводная', 1),
-('6', 'Беспроводная', 1),
-('7', 'Беспроводная', 1),
-('8', 'Беспроводная', 1),
-('9', 'Беспроводная', 1),
-('10', 'Беспроводная', 1);
+('1', 'WIRED', 1),
+('2', 'WIRED', 1),
+('3', 'WIRED', 1),
+('4', 'WIRED', 1),
+('5', 'WIRED', 1),
+('6', 'WIRELESS', 1),
+('7', 'WIRELESS', 1),
+('8', 'WIRELESS', 1),
+('9', 'WIRELESS', 1),
+('10', 'WIRELESS', 1);
 
 insert into "communication_lines"."line_host" ("line_id", "host_id") values
 (1, 1),

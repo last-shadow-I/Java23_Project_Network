@@ -3,6 +3,8 @@ package ru.teamscore.java23.network.model.entities;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import ru.teamscore.java23.network.model.exceptions.WrongIntIpAddressException;
+import ru.teamscore.java23.network.model.exceptions.WrongStringToIpAddressException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.teamscore.java23.network.model.entities.IpAddress.isValid;
@@ -16,9 +18,15 @@ class IpAddressTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"-126.12.100.0", "126.12.100", "", "126.12.100.256", "126.12.100.255.0", "фыв"})
-  void isValidFalse(String value) {
-    assertFalse(isValid(value));
+  @ValueSource(strings = {"-126.12.100.0", "126.12.100", "126.12.100.256", "126.12.100.255.0"})
+  void isValidWrongIntIpAddressException(String value) {
+    assertThrows(WrongIntIpAddressException.class, () -> isValid(value));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"", "фыв"})
+  void isValidWrongStringToIpAddressException(String value) {
+    assertThrows(WrongStringToIpAddressException.class, () -> isValid(value));
   }
 
   @ParameterizedTest

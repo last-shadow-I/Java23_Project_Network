@@ -47,7 +47,7 @@ public class IpAddress {
     return intIpAddress;
   }
 
-  public static boolean isValid(@NonNull int[] intIpAddress){
+  public static boolean isValid(int @NonNull [] intIpAddress){
 
     if (intIpAddress.length != 4){
       throw new WrongIntIpAddressException("Неверный размер ip адреса: ", intIpAddress);
