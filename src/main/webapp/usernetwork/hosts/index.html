@@ -65,7 +65,7 @@
     </div>
     <div class="row">
         <div class="col my-2">
-            <label for="exampleFormControlInput1" class="form-label">Поиск</label>
+            <label class="form-label">Поиск</label>
             <input
                     type="text"
                     class="form-control"
@@ -101,57 +101,15 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
+                <!-- <tr>
                     <td>192.168.0.11</td>
                     <td>3B:F4:59:F4:3B:35</td>
                     <td><i class="bi bi-check-lg text-success"></i></td>
                     <td>
-                        <table id="table-hosts-linked-directly" class="table table-hover table-bordered">
-                            <thead class="table-primary">
-                            <tr>
-                                <th scope="col">ip-адрес</th>
-                                <th scope="col">mac-адрес</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>192.168.0.11</td>
-                                <td>3B:F4:59:F4:3B:35</td>
-                            </tr>
-                            <tr>
-                                <td>192.168.0.12</td>
-                                <td>3B:C5:3E:F5:6D:83</td>
-                            </tr>
-                            <tr>
-                                <td>192.168.0.13</td>
-                                <td>3B:FF:E0:D1:01:FA</td>
-                            </tr>
-                            </tbody>
-                        </table>
+                        
                     </td>
                     <td>
-                        <table id="table-available-hosts" class="table table-hover table-bordered">
-                            <thead class="table-primary">
-                            <tr>
-                                <th scope="col">ip-адрес</th>
-                                <th scope="col">mac-адрес</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>192.168.0.11</td>
-                                <td>3B:F4:59:F4:3B:35</td>
-                            </tr>
-                            <tr>
-                                <td>192.168.0.12</td>
-                                <td>3B:C5:3E:F5:6D:83</td>
-                            </tr>
-                            <tr>
-                                <td>192.168.0.13</td>
-                                <td>3B:FF:E0:D1:01:FA</td>
-                            </tr>
-                            </tbody>
-                        </table>
+                        
                     </td>
                 </tr>
                 <tr>
@@ -206,13 +164,28 @@
                             </tbody>
                         </table>
                     </td>
-                </tr>
+                </tr> -->
                 </tbody>
             </table>
-
-            
         </div>
     </div>
+
+    <template id="template-table-hosts">
+        <table id="table-hosts" class="table table-hover table-bordered">
+            <thead class="table-primary">
+            <tr>
+                <th scope="col">ip-адрес</th>
+                <th scope="col">mac-адрес</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>192.168.0.11</td>
+                <td>3B:F4:59:F4:3B:35</td>
+            </tr>
+            </tbody>
+        </table>
+    </template>
 
 </main>
 
